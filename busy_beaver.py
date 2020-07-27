@@ -13,12 +13,28 @@
 # busy beaver func: Σ  -> called a busy beaver if max score is attained
 
 
-beaver_dict = {2: [[0,1],["R", "L"], ["A", "B", "H"]], 3: [[0,1], ["R", "L"], ["A", "B", "C", "H"]]}
+beaver_dict = {1: [["0", "1"], ["R", "L"], ["A", "H"]], 2: [["0", "1"],["R", "L"], ["A", "B", "H"]], 3: [["0", "1"], ["R", "L"], ["A", "B", "C", "H"]]}
+
+def get_iterations(n):
+	return ((n+1)*2*2)
+
+
+def gen(n):
+	gen_lst = []
+	for machine in range(n):       # machine in generation
+		for state in range(n+1):       # symbol, direction, next state
+			for direction in range(2):
+				for i in range(2):
+					#item[machine] = item[machine][:param] + beaver_dict[n][param][i] + item[machine][param+1:]
+					item = beaver_dict[n][0][i] + beaver_dict[n][1][direction] + beaver_dict[n][2][state]
+					gen_lst.append(item)
+	return gen_lst
+
 
 def run():
-	pass
-
-def ()
+	position = 0
+	initial_state = "A"
+	tape  = []
 
 
 
@@ -27,6 +43,8 @@ if __name__ == "__main__":
 	# for i in range(((n+1)*2*2)**(n*2)):
 	# 	print(i)
 
-	print(beaver_dict[2])
+	lst = gen(1)
+	for i in lst:
+		print(i)
 
 	#print(f"total: {12**4}")
