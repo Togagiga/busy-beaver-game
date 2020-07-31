@@ -1,14 +1,5 @@
-# Busy Beaver problem is concerned with the question of how many ones a halting turing machine can produce
+# Busy Beaver problem is concerned with the question of how many ones a halting turing machine can print on an empty tape
 
-# We will look at 2-symbol machines {0,1}
-# number of possible TM: (symbols*directions*(states+1))^(states*symbols)
-
-# step function has parameters: current state, current symbol, symbol to write, direction of shift, next state)
-# start with all-0 tape
-# iterate until halting state is entered
-# BEGINS IN STATE A
-# only if machine finally halts will the machine get a score which is the number of ones on the tape
-# busy beaver func: Σ  -> called a busy beaver if max score is attained
 
 import numpy as np
 import itertools
