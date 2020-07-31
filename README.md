@@ -10,3 +10,5 @@ How many ones can a halting turing machine print on a blank (all 0) tape?
 - Machines start in "A" state
 - Only halting machines are scored
 - Number of possible TMs with n states: (4n+1))^(2n)
+
+[Wikipedia - Busy beaver](https://en.wikipedia.org/wiki/Busy_beaver)
