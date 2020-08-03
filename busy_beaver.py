@@ -25,7 +25,7 @@ def make_gen(n):
 	for i in range(n*2):
 		permutations_of.append(tm_lst)
 
-	# get all permutatins of lists in permutations_of (cross product)
+	# get all permutations (cross product)
 	gen_lst = list(itertools.product(*permutations_of))
 
 	return gen_lst
