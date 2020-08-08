@@ -2,6 +2,7 @@
 
 import numpy as np
 import itertools
+import sys
 
 # defining options for 2 symbol n state turing machines
 beaver_dict = {1: [["0", "1"], ["R", "L"], ["A", "H"]], 2: [["0", "1"],["R", "L"], ["A", "B", "H"]], 3: [["0", "1"], ["R", "L"], ["A", "B", "C", "H"]],
@@ -125,8 +126,8 @@ def eval_tm(n, tm):
 
 
 if __name__ == "__main__":
-	n = 2
 	# eval_tm(n, beaver_programs[n])
-
+	print(f"executing {sys.argv[0]}")
+	n = int(sys.argv[1])
 	lst = make_gen(n)
 	lst = run_gen(n, lst)
