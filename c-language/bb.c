@@ -8,6 +8,39 @@
 #include <math.h>
 #include <string.h>
 
+void make_single_machine(int n, char tm_lst[][4]);
+
+void make_gen(int n, char tm_lst[][4], char gen[][4*(n+1)][4]);
+
+void run();
+
+
+int main(int argc, char *argv[])
+{
+	if(argc !=2)
+	{
+		printf("Missing Command Line Argument!\n");
+		return 1;
+	}
+
+	int n = atoi(argv[1]);  //atoi stands for ascii to int
+	printf("Running busy beaver with n=%i...\n", n);
+
+	char tm_list[4*(n+1)][4]; // array holding all possible TMs
+	make_single_machine(n, tm_list); // passing in array
+	
+	for(int i=0; i<4*(n+1); i++)
+	{
+		printf("TM: %s\n", *(tm_list+i));
+	}
+
+	char gen[n*2][4*(n+1)][4];
+	make_gen(n, tm_list, gen);
+
+	return 0;
+}
+
+
 // returns all possible turing machines
 void make_single_machine(int n, char tm_lst[][4])
 {
@@ -62,33 +95,8 @@ void make_gen(int n, char tm_lst[][4], char gen[][4*(n+1)][4])
 	printf("Number of entries in 3D array: %i\n", c);
 }
 
+
 void run()
 {
 	printf("running...\n");
-}
-
-
-int main(int argc, char *argv[])
-{
-	if(argc !=2)
-	{
-		printf("Missing Command Line Argument!\n");
-		return 1;
-	}
-	
-	int n = atoi(argv[1]);  //atoi stands for ascii to int
-	printf("Running busy beaver with n=%i...\n", n);
-
-	char tm_list[4*(n+1)][4]; // array holding all possible TMs
-	make_single_machine(n, tm_list); // passing in array
-	
-	for(int i=0; i<4*(n+1); i++)
-	{
-		printf("TM: %s\n", *(tm_list+i));
-	}
-
-	char gen[n*2][4*(n+1)][4];
-	make_gen(n, tm_list, gen);
-
-	return 0;
 }
