@@ -8,12 +8,12 @@
 #include <math.h>
 #include <string.h>
 
-void make_single_machine(int n, char tm_lst[][3])
+// returns all possible turing machines
+void make_single_machine(int n, char tm_lst[][4])
 {
-	// return all permutations of single TM
-	char sign[2] = {'0', '1'};
-	char direction[2] = {'R', 'L'};
-	char state[3] = {'A', 'B', 'H'};
+	char sign[] = {'0', '1'};
+	char direction[] = {'R', 'L'};
+	char state[] = {'A', 'B', 'H'};
 
 	int counter = 0;
 	for(int i=0; i<n+1; i++)
@@ -24,30 +24,33 @@ void make_single_machine(int n, char tm_lst[][3])
 			{
 				tm_lst[counter][0] = sign[k];
 				tm_lst[counter][1] = direction[j];
-				tm_lst[counter++][2] = state[i];
+				tm_lst[counter][2] = state[i];
+				tm_lst[counter++][3] = '\0';   // to end string
 			}
 		}
 	}
 }
 
-void make_gen(int n, char tm_lst[][3])
+
+// returns all possible permutations of turing machines returned from "make_single_machine"
+void make_gen(int n, char tm_lst[][4])
 {
-	// permutate list of 
-	printf("works: %.3s\n", tm_lst[4*(n+1)-1]);
+	printf("implement: %s\n", tm_lst[4*(n+1)-1]);
 }
 
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-	int n = atoi(argv[1]);  //atoi stands for ascii to int
+	// int n = atoi(argv[1]);  //atoi stands for ascii to int
+	int n = 2;
 	printf("Running busy beaver with n=%i...\n", n);
 
-	char tm_list[4*(n+1)][3]; // array holding permutation of single n state TM
+	char tm_list[4*(n+1)][4]; // array holding all possible TMs
 	make_single_machine(n, tm_list); // passing in array
 	
 	for(int i=0; i<4*(n+1); i++)
 	{
-		printf("TM: %.3s\n", *(tm_list + i));
+		printf("TM: %s\n", *(tm_list+i));
 	}
 
 	make_gen(n, tm_list);
