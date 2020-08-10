@@ -14,7 +14,7 @@ void make_single_machine(int n, char tm_lst[][4])
 	char sign[] = "01";
 	char direction[] = "RL";
 	char state[5];
-	
+
 	if(n==1)
 	{
 		strcpy(state, "AH");
@@ -38,7 +38,7 @@ void make_single_machine(int n, char tm_lst[][4])
 				tm_lst[counter][0] = sign[k];
 				tm_lst[counter][1] = direction[j];
 				tm_lst[counter][2] = state[i];
-				tm_lst[counter++][3] = '\0';   // to end string
+				tm_lst[counter++][3] = '\0';   // null terminator:  8 bits of zeros
 			}
 		}
 	}
@@ -54,7 +54,7 @@ void make_gen(int n, char tm_lst[][4], char gen[][4*(n+1)][4])
 	{
 		for(int j=0; j<(4*(n+1)); j++)
 		{
-			memcpy(gen[i][j], tm_lst[j], strlen(tm_lst[j])+1);
+			memcpy(gen[i][j], tm_lst[j], strlen(tm_lst[j])+1);  // (destination, source, bytes)
 			printf("%s\n", gen[i][j]);
 			c++;
 		}
@@ -70,8 +70,13 @@ void run()
 
 int main(int argc, char *argv[])
 {
-	// int n = atoi(argv[1]);  //atoi stands for ascii to int
-	int n = 1;
+	if(argc !=2)
+	{
+		printf("Missing Command Line Argument!\n");
+		return 1;
+	}
+	
+	int n = atoi(argv[1]);  //atoi stands for ascii to int
 	printf("Running busy beaver with n=%i...\n", n);
 
 	char tm_list[4*(n+1)][4]; // array holding all possible TMs
@@ -84,4 +89,6 @@ int main(int argc, char *argv[])
 
 	char gen[n*2][4*(n+1)][4];
 	make_gen(n, tm_list, gen);
+
+	return 0;
 }
