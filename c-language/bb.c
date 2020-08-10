@@ -11,9 +11,22 @@
 // returns all possible turing machines
 void make_single_machine(int n, char tm_lst[][4])
 {
-	char sign[] = {'0', '1'};
-	char direction[] = {'R', 'L'};
-	char state[] = {'A', 'B', 'H'};
+	char sign[] = "01";
+	char direction[] = "RL";
+	char state[5];
+	
+	if(n==1)
+	{
+		strcpy(state, "AH");
+	}
+	else if(n==2)
+	{
+		strcpy(state, "ABH");
+	}
+	else if(n==3)
+	{
+		strcpy(state, "ABCH");
+	}
 
 	int counter = 0;
 	for(int i=0; i<n+1; i++)
@@ -33,16 +46,32 @@ void make_single_machine(int n, char tm_lst[][4])
 
 
 // returns all possible permutations of turing machines returned from "make_single_machine"
-void make_gen(int n, char tm_lst[][4])
+void make_gen(int n, char tm_lst[][4], char gen[][4*(n+1)][4])
 {
-	printf("implement: %s\n", tm_lst[4*(n+1)-1]);
+	printf("make gen...\n");
+	int c = 0;
+	for(int i=0; i<n*2; i++)
+	{
+		for(int j=0; j<(4*(n+1)); j++)
+		{
+			memcpy(gen[i][j], tm_lst[j], strlen(tm_lst[j])+1);
+			printf("%s\n", gen[i][j]);
+			c++;
+		}
+	}
+	printf("Number of entries in 3D array: %i\n", c);
+}
+
+void run()
+{
+	printf("running...\n");
 }
 
 
 int main(int argc, char *argv[])
 {
 	// int n = atoi(argv[1]);  //atoi stands for ascii to int
-	int n = 2;
+	int n = 1;
 	printf("Running busy beaver with n=%i...\n", n);
 
 	char tm_list[4*(n+1)][4]; // array holding all possible TMs
@@ -53,5 +82,6 @@ int main(int argc, char *argv[])
 		printf("TM: %s\n", *(tm_list+i));
 	}
 
-	make_gen(n, tm_list);
+	char gen[n*2][4*(n+1)][4];
+	make_gen(n, tm_list, gen);
 }
