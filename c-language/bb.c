@@ -7,11 +7,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 
 void make_single_machine(int n, char tm_lst[][4]);
 void make_gen(int n, char tm_lst[][4], char *gen);
 void print_gen(int n, char *gen);
-void run();
+char *filter_gen(int n, char *gen);
+void run(int n, char *gen);
 
 
 int main(int argc, char *argv[])
@@ -23,20 +25,18 @@ int main(int argc, char *argv[])
 	}
 
 	int n = atoi(argv[1]);  //atoi stands for ascii to int
-	printf("Running busy beaver with n=%i...\n", n);
+	printf("---Running busy beaver with n=%i---\n", n);
 
 	char tm_list[4*(n+1)][4]; // array holding all possible TMs
 	make_single_machine(n, tm_list); // passing in array
-	
-	// for(int i=0; i<4*(n+1); i++)
-	// {
-	// 	printf("TM: %s\n", *(tm_list+i));
-	// }
 
 	char *gen = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));  //holding all TM pairings
 	printf("Allocating memory for %.1f bytes\n", (3+1)*(n*2)*pow((4*(n+1)),2*n));
 	make_gen(n, tm_list, gen);
-	print_gen(n, gen);
+	// print_gen(n, gen);
+	char *gen_filtered = filter_gen(n, gen);
+	free(gen);
+	run(n, gen_filtered);
 
 	return 0;
 }
@@ -96,15 +96,14 @@ void make_gen(int n, char tm_lst[][4], char *gen)
 	}
 
 	// hard code for n=1 for now...
-	char *ptr1 = gen;
 	for(int i=0; i<(4*(n+1)); i++)
 	{
 		for(int j=0; j<(4*(n+1)); j++)
 		{
-			strcpy(ptr1, temp[0][i]);
-			ptr1 += 4;
-			strcpy(ptr1, temp[0][j]);
-			ptr1 +=4;
+			strcpy(gen, temp[0][i]);
+			gen += 4;
+			strcpy(gen, temp[0][j]);
+			gen +=4;
 		}
 	}
 }
@@ -115,12 +114,83 @@ void print_gen(int n, char *gen)
 	for(int i=0; i<pow(4*(n+1), 2*n); i++)
 	{
 		printf("%s, %s\n", gen, (gen+4));
-		gen += 8;
+		gen += (2*n)*4;
 	}
 }
 
+char *filter_gen(int n, char *gen)
+{
+	printf("filter gen...\n");
 
-void run()
+	int length = 0;
+	bool has_halting_state = false;
+	char *gen_filtered = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));
+
+	for(int i=0; i<pow(4*(n+1), 2*n); i++)
+	{
+		// need to check if TM has halting state...
+		for(int j=0; j<(2*n); j++)
+		{
+			if(*(gen + j*4 + 2) == 'H')
+			{
+				has_halting_state = true;
+			}
+		}
+		// if it does then copy to gen_filtered
+		if(has_halting_state == true)
+		{
+			memcpy((gen_filtered + length*(2*n)*4), gen, (2*n)*4);
+			length++;		
+		}
+		gen += (2*n)*4;  // one system of TMs
+		has_halting_state = false; // reset
+	}
+
+	gen_filtered = (char *)realloc(gen_filtered, length*4*(2*n));
+	printf("---Number of systems with halting state: %i---\n", length);
+	for(int i=0; i<length; i++)
+	{
+		printf("%s, %s\n", (gen_filtered+i*4*(2*n)), (gen_filtered+i*4*(2*n)+4));
+	}
+	return gen_filtered;
+}
+
+
+void run(int n, char *gen)
 {
 	printf("running...\n");
+
+	int steps = 0;
+	int score = 0;
+	char *cur_tm;
+	char cur_state[] = "A1";
+	char possible_states[][3] = {"A0", "A1", "H0", "H1"};
+	char *tape = malloc(sizeof(char)*((n+1)*10)); // tape initialised to zero
+	memset(tape, '0', sizeof(char)*((n+1)*10));
+	char *index = tape + ((n+1)*10)/2;
+	printf("%c\n", *index);
+
+	while(1)
+	{
+		printf("System: %s, %s\n", gen, (gen+4));
+		printf("Current State: %s\n", possible_states[0]);
+
+		if(cur_state == "A0")
+		{
+			memcpy(cur_tm, gen, sizeof(char)*4);
+			printf("Current TM: %s\n", cur_tm);
+			// over-write index, cur_state
+		}
+		else if(cur_state == "A1")
+		{
+			memcpy(cur_tm, gen+4, sizeof(char)*4);
+			printf("Current TM: %s\n", cur_tm);
+			// over-write index, cur_state
+		}
+
+		printf("finished!\n");
+
+		steps++;
+		break;
+	}
 }
