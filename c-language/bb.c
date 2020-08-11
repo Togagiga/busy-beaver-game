@@ -9,9 +9,8 @@
 #include <string.h>
 
 void make_single_machine(int n, char tm_lst[][4]);
-
-void make_gen(int n, char tm_lst[][4], char gen[][4*(n+1)][4]);
-
+void make_gen(int n, char tm_lst[][4], char *gen);
+void print_gen(int n, char *gen);
 void run();
 
 
@@ -29,13 +28,15 @@ int main(int argc, char *argv[])
 	char tm_list[4*(n+1)][4]; // array holding all possible TMs
 	make_single_machine(n, tm_list); // passing in array
 	
-	for(int i=0; i<4*(n+1); i++)
-	{
-		printf("TM: %s\n", *(tm_list+i));
-	}
+	// for(int i=0; i<4*(n+1); i++)
+	// {
+	// 	printf("TM: %s\n", *(tm_list+i));
+	// }
 
-	char gen[n*2][4*(n+1)][4];
+	char *gen = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));  //holding all TM pairings
+	printf("Allocating memory for %.1f bytes\n", (3+1)*(n*2)*pow((4*(n+1)),2*n));
 	make_gen(n, tm_list, gen);
+	print_gen(n, gen);
 
 	return 0;
 }
@@ -79,20 +80,43 @@ void make_single_machine(int n, char tm_lst[][4])
 
 
 // returns all possible permutations of turing machines returned from "make_single_machine"
-void make_gen(int n, char tm_lst[][4], char gen[][4*(n+1)][4])
+void make_gen(int n, char tm_lst[][4], char *gen)
 {
 	printf("make gen...\n");
+	char temp[n*2][4*(n+1)][4];
 	int c = 0;
 	for(int i=0; i<n*2; i++)
 	{
 		for(int j=0; j<(4*(n+1)); j++)
 		{
-			memcpy(gen[i][j], tm_lst[j], strlen(tm_lst[j])+1);  // (destination, source, bytes)
-			printf("%s\n", gen[i][j]);
+			memcpy(temp[i][j], tm_lst[j], strlen(tm_lst[j])+1);  // (destination, source, bytes)
+			// printf("%s\n", temp[i][j]);
 			c++;
 		}
 	}
-	printf("Number of entries in 3D array: %i\n", c);
+
+	// hard code for n=1 for now...
+	char *ptr1 = gen;
+	for(int i=0; i<(4*(n+1)); i++)
+	{
+		for(int j=0; j<(4*(n+1)); j++)
+		{
+			strcpy(ptr1, temp[0][i]);
+			ptr1 += 4;
+			strcpy(ptr1, temp[0][j]);
+			ptr1 +=4;
+		}
+	}
+}
+
+
+void print_gen(int n, char *gen)
+{
+	for(int i=0; i<pow(4*(n+1), 2*n); i++)
+	{
+		printf("%s, %s\n", gen, (gen+4));
+		gen += 8;
+	}
 }
 
 
