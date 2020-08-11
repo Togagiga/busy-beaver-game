@@ -5,6 +5,7 @@
 
 // TODO make_gen only working for n=1 (implement python's itertools)
 // TODO in run implement scoring for systems
+// TODO combine all machines into single variable for printing so "n" can be varied
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,13 +29,12 @@ int main(int argc, char *argv[])
 	}
 
 	int n = atoi(argv[1]);  //atoi stands for ascii to int
-	printf("---Running busy beaver with n=%i---\n", n);
+	printf("---Running busy beaver with n=%i---\n\n", n);
 
 	char tm_list[4*(n+1)][4]; // array holding all possible TMs
 	make_single_machine(n, tm_list); // passing in array
 
 	char *gen = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));  //holding all TM pairings
-	printf("Allocating memory for %.1f bytes\n", (3+1)*(n*2)*pow((4*(n+1)),2*n));
 	make_gen(n, tm_list, gen);
 
 	// print_gen(n, gen);
@@ -88,7 +88,6 @@ void make_single_machine(int n, char tm_lst[][4])
 // returns all possible permutations of turing machines returned from "make_single_machine"
 void make_gen(int n, char tm_lst[][4], char *gen)
 {
-	printf("make gen...\n");
 	char temp[n*2][4*(n+1)][4];
 	int c = 0;
 	for(int i=0; i<n*2; i++)
@@ -126,8 +125,6 @@ void print_gen(int n, char *gen)
 
 char *filter_gen(int n, char *gen, int *length)
 {
-	printf("filter gen...\n");
-
 	*length = 0;
 	bool has_halting_state = false;
 	char *gen_filtered = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));
@@ -153,7 +150,7 @@ char *filter_gen(int n, char *gen, int *length)
 	}
 
 	gen_filtered = (char *)realloc(gen_filtered, (*length)*4*(2*n));
-	printf("---Number of systems with halting state: %i---\n", (*length));
+	printf("Number of systems with halting state: %i\n", (*length));
 	for(int i=0; i<(*length); i++)
 	{
 		// printf("%s, %s\n", (gen_filtered+i*4*(2*n)), (gen_filtered+i*4*(2*n)+4));
@@ -164,8 +161,6 @@ char *filter_gen(int n, char *gen, int *length)
 
 void run(int n, char *gen, int *length)
 {
-	printf("running...\n\n");
-
 	// iterating through all systems in gen_filtered
 	for(int sys=0; sys<(*length); sys++)
 	{
@@ -182,8 +177,6 @@ void run(int n, char *gen, int *length)
 
 		while(1)
 		{
-			//printf("Current State: %s\n", cur_state);
-
 			// find which action to perform according to cur_state
 			char *action;
 			for(int i=0; i<6; i++)
@@ -194,8 +187,7 @@ void run(int n, char *gen, int *length)
 					break;
 				}
 			}
-			// printf("Action: %s\n", action);
-
+			
 			// move head of tm right or left
 			if(*(action + 1) == 'R')
 			{
@@ -228,7 +220,7 @@ void run(int n, char *gen, int *length)
 
 			steps++;
 		}
-		printf("(%s, %s) --> %i, %d\n", gen, gen+4, steps, halts);
+		printf("(%s, %s) --> %i, %s\n", gen, gen+4, steps, halts?"true":"false");
 		gen += (2*n)*4;
 
 	}
