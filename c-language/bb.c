@@ -3,6 +3,9 @@
    filtering for non halting TMs
    finding TM which prints the most "ones" */
 
+// TODO make_gen only working for n=1 (implement python's itertools)
+// TODO in run implement scoring for systems
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -12,8 +15,8 @@
 void make_single_machine(int n, char tm_lst[][4]);
 void make_gen(int n, char tm_lst[][4], char *gen);
 void print_gen(int n, char *gen);
-char *filter_gen(int n, char *gen);
-void run(int n, char *gen);
+char *filter_gen(int n, char *gen, int *length);
+void run(int n, char *gen, int *length);
 
 
 int main(int argc, char *argv[])
@@ -33,10 +36,13 @@ int main(int argc, char *argv[])
 	char *gen = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));  //holding all TM pairings
 	printf("Allocating memory for %.1f bytes\n", (3+1)*(n*2)*pow((4*(n+1)),2*n));
 	make_gen(n, tm_list, gen);
+
 	// print_gen(n, gen);
-	char *gen_filtered = filter_gen(n, gen);
+
+	int length; // length of gen_filtered
+	char *gen_filtered = filter_gen(n, gen, &length);
 	free(gen);
-	run(n, gen_filtered);
+	run(n, gen_filtered, &length);
 
 	return 0;
 }
@@ -118,11 +124,11 @@ void print_gen(int n, char *gen)
 	}
 }
 
-char *filter_gen(int n, char *gen)
+char *filter_gen(int n, char *gen, int *length)
 {
 	printf("filter gen...\n");
 
-	int length = 0;
+	*length = 0;
 	bool has_halting_state = false;
 	char *gen_filtered = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));
 
@@ -139,58 +145,91 @@ char *filter_gen(int n, char *gen)
 		// if it does then copy to gen_filtered
 		if(has_halting_state == true)
 		{
-			memcpy((gen_filtered + length*(2*n)*4), gen, (2*n)*4);
-			length++;		
+			memcpy((gen_filtered + (*length)*(2*n)*4), gen, (2*n)*4);
+			(*length)++;		
 		}
 		gen += (2*n)*4;  // one system of TMs
 		has_halting_state = false; // reset
 	}
 
-	gen_filtered = (char *)realloc(gen_filtered, length*4*(2*n));
-	printf("---Number of systems with halting state: %i---\n", length);
-	for(int i=0; i<length; i++)
+	gen_filtered = (char *)realloc(gen_filtered, (*length)*4*(2*n));
+	printf("---Number of systems with halting state: %i---\n", (*length));
+	for(int i=0; i<(*length); i++)
 	{
-		printf("%s, %s\n", (gen_filtered+i*4*(2*n)), (gen_filtered+i*4*(2*n)+4));
+		// printf("%s, %s\n", (gen_filtered+i*4*(2*n)), (gen_filtered+i*4*(2*n)+4));
 	}
 	return gen_filtered;
 }
 
 
-void run(int n, char *gen)
+void run(int n, char *gen, int *length)
 {
-	printf("running...\n");
+	printf("running...\n\n");
 
-	int steps = 0;
-	int score = 0;
-	char *cur_tm;
-	char cur_state[] = "A1";
-	char possible_states[][3] = {"A0", "A1", "H0", "H1"};
-	char *tape = malloc(sizeof(char)*((n+1)*10)); // tape initialised to zero
-	memset(tape, '0', sizeof(char)*((n+1)*10));
-	char *index = tape + ((n+1)*10)/2;
-	printf("%c\n", *index);
-
-	while(1)
+	// iterating through all systems in gen_filtered
+	for(int sys=0; sys<(*length); sys++)
 	{
-		printf("System: %s, %s\n", gen, (gen+4));
-		printf("Current State: %s\n", possible_states[0]);
+		int steps = 1;
+		int score = 0;
+		bool halts = false;
+		char cur_state[3];
+		strcpy(cur_state, "A0");
+		char possible_states[][3] = {"A0", "A1", "B0", "B1"};
+		int tape_length = ((n+1)*10);
+		char *tape = malloc(sizeof(char)*tape_length); // tape initialised to zero
+		memset(tape, '0', sizeof(char)*tape_length);
+		char *index = tape + tape_length/2;
 
-		if(cur_state == "A0")
+		while(1)
 		{
-			memcpy(cur_tm, gen, sizeof(char)*4);
-			printf("Current TM: %s\n", cur_tm);
-			// over-write index, cur_state
-		}
-		else if(cur_state == "A1")
-		{
-			memcpy(cur_tm, gen+4, sizeof(char)*4);
-			printf("Current TM: %s\n", cur_tm);
-			// over-write index, cur_state
-		}
+			//printf("Current State: %s\n", cur_state);
 
-		printf("finished!\n");
+			// find which action to perform according to cur_state
+			char *action;
+			for(int i=0; i<6; i++)
+			{
+				if(strcmp(cur_state, possible_states[i]) == 0)
+				{
+					memcpy(action, gen + 4*i, sizeof(char)*4);
+					break;
+				}
+			}
+			// printf("Action: %s\n", action);
 
-		steps++;
-		break;
+			// move head of tm right or left
+			if(*(action + 1) == 'R')
+			{
+				memcpy(index, action, 1); // write new symbol
+				index++;
+			}
+			else if(*(action + 1) == 'L')
+			{
+				memcpy(index, action, 1); // write new symbol
+				index--;
+			}
+
+			// update cur_state
+			memcpy(cur_state, (action+2), 1);
+			memcpy(cur_state+1, index, 1);
+
+			// CHEATING: Machine assumed to never halt
+			if(steps >= tape_length/2)
+			{
+				break;
+			}
+
+
+			// checking for new state being halting state
+			if(*(cur_state) == 'H')
+			{
+				halts = true;
+				break;
+			}
+
+			steps++;
+		}
+		printf("(%s, %s) --> %i, %d\n", gen, gen+4, steps, halts);
+		gen += (2*n)*4;
+
 	}
 }
