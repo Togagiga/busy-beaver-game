@@ -84,7 +84,7 @@ def run_gen(n, gen_lst):
 					best_steps = steps
 				break
 			steps += 1
-		print(f"{system} --> {halts}, {score}, {steps}")
+		print(f"{system} --> {halts}, {steps}, {score}")
 	print(f"Best Score: {best_score} in {best_steps} steps")
 
 	return gen_lst

@@ -4,8 +4,6 @@
    finding TM which prints the most "ones" */
 
 // TODO make_gen only working for n=1 (implement python's itertools)
-// TODO in run implement scoring for systems
-// TODO combine all machines into single variable for printing so "n" can be varied
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,12 +35,13 @@ int main(int argc, char *argv[])
 	char *gen = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));  //holding all TM pairings
 	make_gen(n, tm_list, gen);
 
-	// print_gen(n, gen);
+	print_gen(n, gen);
 
 	int length; // length of gen_filtered
 	char *gen_filtered = filter_gen(n, gen, &length);
 	free(gen);
 	run(n, gen_filtered, &length);
+	//free(gen_filtered);
 
 	return 0;
 }
@@ -95,20 +94,26 @@ void make_gen(int n, char tm_lst[][4], char *gen)
 		for(int j=0; j<(4*(n+1)); j++)
 		{
 			memcpy(temp[i][j], tm_lst[j], strlen(tm_lst[j])+1);  // (destination, source, bytes)
-			// printf("%s\n", temp[i][j]);
 			c++;
 		}
 	}
 
-	// hard code for n=1 for now...
-	for(int i=0; i<(4*(n+1)); i++)
+	// cartesian product of sets
+	int counter = 0;
+	for(int i=0; i<pow(4*(n+1), 2*n); i++)
 	{
-		for(int j=0; j<(4*(n+1)); j++)
+		int indices[2*n];
+		int remainder = i;
+		for(int j=0; j<2*n; j++)
 		{
-			strcpy(gen, temp[0][i]);
+			
+			indices[j] = remainder % (4*(n+1));
+			remainder = remainder/(4*(n+1));
+		}
+		for(int j=0; j<2*n; j++)
+		{
+			strcpy(gen, temp[j][indices[(2*n-1)-j]]);
 			gen += 4;
-			strcpy(gen, temp[0][j]);
-			gen +=4;
 		}
 	}
 }
@@ -116,10 +121,28 @@ void make_gen(int n, char tm_lst[][4], char *gen)
 
 void print_gen(int n, char *gen)
 {
+	int counter = 0;
 	for(int i=0; i<pow(4*(n+1), 2*n); i++)
 	{
-		printf("%s, %s\n", gen, (gen+4));
-		gen += (2*n)*4;
+		char *system = malloc(sizeof(char)*3*2*n + 2*(n-1) + 1);
+		for(int i=0; i<2*n; i++)
+		{
+			// put all actions into one variable...
+			memcpy(system + i*5, gen + i*4, 3);
+			if(i != (2*n-1))
+			{
+				memset(system + i*5 + 3, ',', 1);
+				memset(system + i*5 + 4, ' ', 1);
+			}
+		}
+		printf("System: (%s)\n", system);
+		free(system);
+		gen += 4*(2*n);
+		counter++;
+		if(counter == 30)
+		{
+			break;
+		}
 	}
 }
 
@@ -151,6 +174,7 @@ char *filter_gen(int n, char *gen, int *length)
 
 	gen_filtered = (char *)realloc(gen_filtered, (*length)*4*(2*n));
 	printf("Number of systems with halting state: %i\n", (*length));
+	
 	for(int i=0; i<(*length); i++)
 	{
 		// printf("%s, %s\n", (gen_filtered+i*4*(2*n)), (gen_filtered+i*4*(2*n)+4));
@@ -187,7 +211,7 @@ void run(int n, char *gen, int *length)
 					break;
 				}
 			}
-			
+
 			// move head of tm right or left
 			if(*(action + 1) == 'R')
 			{
@@ -210,17 +234,37 @@ void run(int n, char *gen, int *length)
 				break;
 			}
 
-
 			// checking for new state being halting state
 			if(*(cur_state) == 'H')
 			{
 				halts = true;
+				// count score if halts
+				for(int i=0; i<tape_length; i++)
+				{
+					if(tape[i] == '1')
+					{
+						score++;
+					}
+				}
 				break;
 			}
 
 			steps++;
 		}
-		printf("(%s, %s) --> %i, %s\n", gen, gen+4, steps, halts?"true":"false");
+
+		char *system = malloc(sizeof(char)*3*2*n + 2*(n-1) + 1);
+		for(int i=0; i<2*n; i++)
+		{
+			// put all actions into one variable...
+			memcpy(system + i*5, gen + i*4, 3);
+			if(i != (2*n-1))
+			{
+				memset(system + i*5 + 3, ',', 1);
+				memset(system + i*5 + 4, ' ', 1);
+			}
+		}
+		printf("(%s) --> %s, %i, %i\n", system, halts?"true":"false", steps, score);
+		free(system);
 		gen += (2*n)*4;
 
 	}
