@@ -13,7 +13,7 @@
 
 void make_single_machine(int n, char tm_lst[][4]);
 void make_gen(int n, char tm_lst[][4], char *gen);
-void print_gen(int n, char *gen);
+void print_gen(int n, char *gen, int *length);
 char *filter_gen(int n, char *gen, int *length);
 void run(int n, char *gen, int *length);
 
@@ -32,16 +32,19 @@ int main(int argc, char *argv[])
 	char tm_list[4*(n+1)][4]; // array holding all possible TMs
 	make_single_machine(n, tm_list); // passing in array
 
-	char *gen = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));  //holding all TM pairings
+	int gen_length = pow(4*(n+1), 2*n);
+	char *gen = malloc(sizeof(char)*(3+1)*(n*2)*gen_length);  //holding all TM pairings
 	make_gen(n, tm_list, gen);
 
-	print_gen(n, gen);
-
-	int length; // length of gen_filtered
-	char *gen_filtered = filter_gen(n, gen, &length);
+	int filtered_length; // length of gen_filtered
+	char *gen_filtered = filter_gen(n, gen, &filtered_length);  // all TM pairing with halting state
 	free(gen);
-	run(n, gen_filtered, &length);
-	//free(gen_filtered);
+	// print_gen(n, gen_filtered, &filtered_length);
+
+
+	// ---> run filtered list of filtered systems <---
+	run(n, gen_filtered, &filtered_length);
+	free(gen_filtered);
 
 	return 0;
 }
@@ -119,10 +122,10 @@ void make_gen(int n, char tm_lst[][4], char *gen)
 }
 
 
-void print_gen(int n, char *gen)
+void print_gen(int n, char *gen, int *length)
 {
 	int counter = 0;
-	for(int i=0; i<pow(4*(n+1), 2*n); i++)
+	for(int i=0; i<*length; i++)
 	{
 		char *system = malloc(sizeof(char)*3*2*n + 2*(n-1) + 1);
 		for(int i=0; i<2*n; i++)
@@ -150,7 +153,7 @@ char *filter_gen(int n, char *gen, int *length)
 {
 	*length = 0;
 	bool has_halting_state = false;
-	char *gen_filtered = malloc(sizeof(char)*(3+1)*(n*2)*pow((4*(n+1)),2*n));
+	char *gen_filtered = malloc(sizeof(char)*(3+1)*(n*2)*pow(4*(n+1),2*n));
 
 	for(int i=0; i<pow(4*(n+1), 2*n); i++)
 	{
@@ -174,17 +177,16 @@ char *filter_gen(int n, char *gen, int *length)
 
 	gen_filtered = (char *)realloc(gen_filtered, (*length)*4*(2*n));
 	printf("Number of systems with halting state: %i\n", (*length));
-	
-	for(int i=0; i<(*length); i++)
-	{
-		// printf("%s, %s\n", (gen_filtered+i*4*(2*n)), (gen_filtered+i*4*(2*n)+4));
-	}
+
 	return gen_filtered;
 }
 
 
 void run(int n, char *gen, int *length)
 {
+	int high_score = 0;
+	int high_steps = 0;
+
 	// iterating through all systems in gen_filtered
 	for(int sys=0; sys<(*length); sys++)
 	{
@@ -194,7 +196,7 @@ void run(int n, char *gen, int *length)
 		char cur_state[3];
 		strcpy(cur_state, "A0");
 		char possible_states[][3] = {"A0", "A1", "B0", "B1"};
-		int tape_length = ((n+1)*10);
+		int tape_length = ((n+1)*20);
 		char *tape = malloc(sizeof(char)*tape_length); // tape initialised to zero
 		memset(tape, '0', sizeof(char)*tape_length);
 		char *index = tape + tape_length/2;
@@ -203,15 +205,14 @@ void run(int n, char *gen, int *length)
 		{
 			// find which action to perform according to cur_state
 			char *action;
-			for(int i=0; i<6; i++)
+			for(int i=0; i<4; i++)
 			{
 				if(strcmp(cur_state, possible_states[i]) == 0)
 				{
-					memcpy(action, gen + 4*i, sizeof(char)*4);
+					action = (gen + 4*i);
 					break;
 				}
 			}
-
 			// move head of tm right or left
 			if(*(action + 1) == 'R')
 			{
@@ -246,9 +247,13 @@ void run(int n, char *gen, int *length)
 						score++;
 					}
 				}
+				if(score > high_score)
+				{
+					high_score = score;
+					high_steps = steps;
+				}
 				break;
 			}
-
 			steps++;
 		}
 
@@ -266,6 +271,10 @@ void run(int n, char *gen, int *length)
 		printf("(%s) --> %s, %i, %i\n", system, halts?"true":"false", steps, score);
 		free(system);
 		gen += (2*n)*4;
-
+		if(sys == 30)
+		{
+			//break;
+		}
 	}
+	printf("\n----> Highest Score: %i in %i steps\n", high_score, high_steps);
 }
