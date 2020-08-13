@@ -114,7 +114,7 @@ void print_system(int n, char *gen) {
 	char *system = malloc(sizeof(char)*(2*n)*5);
 	for(int i=0; i<2*n; i++) {
 			// put all actions into one variable...
-			memcpy(system + i*5, gen + i*4, 3);
+			memcpy(system + i*5, gen + i*4, 3);  // memcpy instead of strcpy to not have '\0'
 			if(i != (2*n-1)) {
 				memset(system + i*5 + 3, ',', 1);
 				memset(system + i*5 + 4, ' ', 1);
