@@ -13,6 +13,7 @@
 
 void make_single_machine(int n, char tm_lst[][4]);
 void make_gen(int n, char tm_lst[][4], char *gen);
+void print_system(int n, char *gen);
 void print_gen(int n, char *gen, int *length);
 char *filter_gen(int n, char *gen, int *length);
 void run(int n, char *gen, int *length);
@@ -52,7 +53,7 @@ int main(int argc, char *argv[]) {
 void make_single_machine(int n, char tm_lst[][4]) {
 	char sign[] = "01";
 	char direction[] = "RL";
-	char state[5];
+	char state[6];
 
 	if(n==1) {
 		strcpy(state, "AH");
@@ -62,6 +63,9 @@ void make_single_machine(int n, char tm_lst[][4]) {
 	}
 	else if(n==3) {
 		strcpy(state, "ABCH");
+	}
+	else if(n==4) {
+		strcpy(state, "ABCDH");
 	}
 
 	int counter = 0;
@@ -106,23 +110,26 @@ void make_gen(int n, char tm_lst[][4], char *gen) {
 }
 
 
-void print_gen(int n, char *gen, int *length) {
-	int counter = 0;
-	for(int i=0; i<*length; i++) {
-		char *system = malloc(sizeof(char)*3*2*n + 2*(n-1) + 1);
-		for(int i=0; i<2*n; i++) {
+void print_system(int n, char *gen) {
+	char *system = malloc(sizeof(char)*(2*n)*5);
+	for(int i=0; i<2*n; i++) {
 			// put all actions into one variable...
 			memcpy(system + i*5, gen + i*4, 3);
 			if(i != (2*n-1)) {
 				memset(system + i*5 + 3, ',', 1);
 				memset(system + i*5 + 4, ' ', 1);
 			}
-		}
-		printf("System: (%s)\n", system);
-		free(system);
-		gen += 4*(2*n);
-		counter++;
-		if(counter == 30) {
+	}
+	printf("System: (%s)\n", system);
+	free(system);
+}
+
+
+void print_gen(int n, char *gen, int *length) {
+	for(int i=0; i<*length; i++) {
+		print_system(n, gen);
+		gen += 4*(2*n);  // move pointer by one system
+		if(i == 30) {
 			break;
 		}
 	}
@@ -160,6 +167,7 @@ char *filter_gen(int n, char *gen, int *length) {
 void run(int n, char *gen, int *length) {
 	int high_score = 0;
 	int high_steps = 0;
+	char *best_sys;
 
 	// iterating through all systems in gen_filtered
 	for(int sys=0; sys<(*length); sys++) {
@@ -168,8 +176,8 @@ void run(int n, char *gen, int *length) {
 		bool halts = false;
 		char cur_state[3];
 		strcpy(cur_state, "A0");
-		char possible_states[][3] = {"A0", "A1", "B0", "B1"};
-		int tape_length = ((n+1)*20);
+		char possible_states[][3] = {"A0", "A1", "B0", "B1", "C0", "C1", "D0", "D1"};
+		int tape_length = (sqrt(*length));
 		char *tape = malloc(sizeof(char)*tape_length); // tape initialised to zero
 		memset(tape, '0', sizeof(char)*tape_length);
 		char *index = tape + tape_length/2;
@@ -214,13 +222,14 @@ void run(int n, char *gen, int *length) {
 				if(score > high_score) {
 					high_score = score;
 					high_steps = steps;
+					best_sys = gen;
 				}
 				break;
 			}
 			steps++;
 		}
 
-		char *system = malloc(sizeof(char)*3*2*n + 2*(n-1) + 1);
+		char *system = malloc(sizeof(char)*(2*n)*5);
 		for(int i=0; i<2*n; i++) {
 			// put all actions into one variable...
 			memcpy(system + i*5, gen + i*4, 3);
@@ -231,7 +240,9 @@ void run(int n, char *gen, int *length) {
 		}
 		printf("(%s) --> %s, %i, %i\n", system, halts?"true":"false", steps, score);
 		free(system);
-		gen += (2*n)*4;
+		gen += (2*n)*4;  // move pointer one system along
+		free(tape);
 	}
 	printf("\n----> Highest Score: %i in %i steps\n", high_score, high_steps);
+	print_system(n, best_sys);
 }
